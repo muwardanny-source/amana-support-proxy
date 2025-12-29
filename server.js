@@ -1,21 +1,25 @@
+import React from "react";
 import { ImageResponse } from "@vercel/og";
 
-export const runtime = "edge";
+export const config = {
+  runtime: "edge",
+};
 
 export default async function handler() {
   const res = await fetch(
-    "https://mobilebackend.amanalabs.net/api/v1/top-movers?Industry=460,461"
+    "https://mobilebackend.amanalabs.net/api/v1/top-movers?Industry=460,461",
+    { cache: "no-store" }
   );
 
   const data = await res.json();
 
-  const gainers = data
-    .filter((x) => x.perc > 0)
+  const gainers = (Array.isArray(data) ? data : [])
+    .filter((x) => x?.perc > 0)
     .sort((a, b) => b.perc - a.perc)
     .slice(0, 6);
 
-  const losers = data
-    .filter((x) => x.perc < 0)
+  const losers = (Array.isArray(data) ? data : [])
+    .filter((x) => x?.perc < 0)
     .sort((a, b) => a.perc - b.perc)
     .slice(0, 6);
 
@@ -25,19 +29,27 @@ export default async function handler() {
         style={{
           width: "1200px",
           height: "628px",
-          background: "#0e0a28",
+          backgroundColor: "#0e0a28",
           color: "#ffffff",
           padding: "40px",
           fontFamily: "Arial",
+          display: "flex",
+          flexDirection: "column",
         }}
       >
         <div style={{ fontSize: 44, fontWeight: "bold" }}>
           Top Movers
         </div>
 
-        <div style={{ display: "flex", marginTop: 40 }}>
+        <div style={{ display: "flex", marginTop: 40, gap: 40 }}>
           <div style={{ flex: 1 }}>
-            <div style={{ color: "#00e3a2", fontSize: 26, marginBottom: 20 }}>
+            <div
+              style={{
+                color: "#00e3a2",
+                fontSize: 26,
+                marginBottom: 20,
+              }}
+            >
               Top Gainers
             </div>
             {gainers.map((x, i) => (
@@ -48,7 +60,13 @@ export default async function handler() {
           </div>
 
           <div style={{ flex: 1 }}>
-            <div style={{ color: "#ff4b6b", fontSize: 26, marginBottom: 20 }}>
+            <div
+              style={{
+                color: "#ff4b6b",
+                fontSize: 26,
+                marginBottom: 20,
+              }}
+            >
               Top Losers
             </div>
             {losers.map((x, i) => (
