@@ -1,15 +1,13 @@
-import fetch from "node-fetch";
 import { ImageResponse } from "@vercel/og";
 
-export const config = {
-  runtime: "edge",
-};
+export const runtime = "edge";
 
 export default async function handler() {
-  const r = await fetch(
+  const res = await fetch(
     "https://mobilebackend.amanalabs.net/api/v1/top-movers?Industry=460,461"
   );
-  const data = await r.json();
+
+  const data = await res.json();
 
   const gainers = data
     .filter((x) => x.perc > 0)
@@ -62,6 +60,9 @@ export default async function handler() {
         </div>
       </div>
     ),
-    { width: 1200, height: 628 }
+    {
+      width: 1200,
+      height: 628,
+    }
   );
 }
