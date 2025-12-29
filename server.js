@@ -1,38 +1,67 @@
-import express from "express";
-import cors from "cors";
-import * as cheerio from "cheerio";
+import fetch from "node-fetch";
+import { ImageResponse } from "@vercel/og";
 
-const app = express();
-app.use(cors());
+export const config = {
+  runtime: "edge",
+};
 
-const URL = "https://amana.app/company/contact-us";
+export default async function handler() {
+  const r = await fetch(
+    "https://mobilebackend.amanalabs.net/api/v1/top-movers?Industry=460,461"
+  );
+  const data = await r.json();
 
-app.get("/support-links", async (req, res) => {
-  try {
-    const r = await fetch(URL);
-    const html = await r.text();
-    const $ = cheerio.load(html);
+  const gainers = data
+    .filter((x) => x.perc > 0)
+    .sort((a, b) => b.perc - a.perc)
+    .slice(0, 6);
 
-    const links = [];
-    $("a[href]").each((_, el) => {
-      const h = $(el).attr("href");
-      if (!h) return;
-      links.push(h.startsWith("http") ? h : URL + h);
-    });
+  const losers = data
+    .filter((x) => x.perc < 0)
+    .sort((a, b) => a.perc - b.perc)
+    .slice(0, 6);
 
-    const find = (k) => links.find(l => l.toLowerCase().includes(k)) || null;
+  return new ImageResponse(
+    (
+      <div
+        style={{
+          width: "1200px",
+          height: "628px",
+          background: "#0e0a28",
+          color: "#ffffff",
+          padding: "40px",
+          fontFamily: "Arial",
+        }}
+      >
+        <div style={{ fontSize: 44, fontWeight: "bold" }}>
+          Top Movers
+        </div>
 
-    res.json({
-      whatsapp: find("whatsapp"),
-      telegram: find("t.me"),
-      messenger: find("m.me"),
-      email: find("mailto")?.replace("mailto:", "")
-    });
-  } catch {
-    res.status(500).json({ error: "failed" });
-  }
-});
+        <div style={{ display: "flex", marginTop: 40 }}>
+          <div style={{ flex: 1 }}>
+            <div style={{ color: "#00e3a2", fontSize: 26, marginBottom: 20 }}>
+              Top Gainers
+            </div>
+            {gainers.map((x, i) => (
+              <div key={i} style={{ fontSize: 22, marginBottom: 12 }}>
+                {(x.symbol || x.category)} +{x.perc.toFixed(2)}%
+              </div>
+            ))}
+          </div>
 
-app.listen(10000, () => {
-  console.log("Server running on port 10000");
-});
+          <div style={{ flex: 1 }}>
+            <div style={{ color: "#ff4b6b", fontSize: 26, marginBottom: 20 }}>
+              Top Losers
+            </div>
+            {losers.map((x, i) => (
+              <div key={i} style={{ fontSize: 22, marginBottom: 12 }}>
+                {(x.symbol || x.category)} {x.perc.toFixed(2)}%
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    ),
+    { width: 1200, height: 628 }
+  );
+}
