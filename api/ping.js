@@ -1,5 +1,3 @@
-export const config = { runtime: "edge" };
-
-export default function handler() {
-  return new Response("ok", { status: 200 });
+export default function handler(req, res) {
+  res.status(200).send("ok");
 }
