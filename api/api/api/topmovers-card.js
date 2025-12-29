@@ -39,4 +39,23 @@ export default async function handler(req, res) {
   <rect width="1200" height="628" fill="#0e0a28"/>
   <text x="60" y="80" fill="#fff" font-size="44" font-family="Arial" font-weight="700">Top Movers</text>
 
-  <rect x="50" y="120" width="540" heig
+  <rect x="50" y="120" width="540" height="460" rx="18" fill="#15123a"/>
+  <rect x="610" y="120" width="540" height="460" rx="18" fill="#15123a"/>
+
+  <text x="80" y="170" fill="#00e3a2" font-size="26" font-family="Arial" font-weight="700">Top Gainers</text>
+  <text x="640" y="170" fill="#ff4b6b" font-size="26" font-family="Arial" font-weight="700">Top Losers</text>
+
+  ${gainers.map((x, i) => row(x, i, 80, 220, "#00e3a2")).join("")}
+  ${losers.map((x, i) => row(x, i, 640, 220, "#ff4b6b")).join("")}
+
+  <text x="60" y="610" fill="#8b87a8" font-size="16" font-family="Arial">Auto-updated</text>
+</svg>`.trim();
+
+    res.setHeader("Content-Type", "image/svg+xml; charset=utf-8");
+    res.setHeader("Cache-Control", "public, s-maxage=60, stale-while-revalidate=60");
+    res.status(200).send(svg);
+  } catch (e) {
+    res.setHeader("Content-Type", "text/plain; charset=utf-8");
+    res.status(500).send("svg error: " + String(e));
+  }
+}
